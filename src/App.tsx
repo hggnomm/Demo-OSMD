@@ -1,10 +1,10 @@
 import React from 'react';
-import MusicDisplayAndPlayer from './MusicDisplay';
+import MusicSheet from './MusicDisplay';
 
 const App: React.FC = () => {
   return (
     <div>
-      <MusicDisplayAndPlayer />
+      <MusicSheet />
       </div>
   );
 };

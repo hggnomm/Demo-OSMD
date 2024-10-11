@@ -1,87 +1,110 @@
 import React, { useEffect, useRef, useState } from "react";
 import { OpenSheetMusicDisplay } from "opensheetmusicdisplay";
+import AudioPlayer from "osmd-audio-player";
 import axios from "axios";
-import AudioPlayer from "osmd-audio-player"; // Import thư viện AudioPlayer
 
-const fetchMusicXML = async (url: string): Promise<string> => {
-  const response = await axios.get(url);
-  return response.data;
-};
+const MusicSheet: React.FC = () => {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const bpmInputRef = useRef<HTMLInputElement | null>(null);
+  const scoreContainerRef = useRef<HTMLDivElement | null>(null);
+  const [osmdInstance, setOsmdInstance] = useState<OpenSheetMusicDisplay | null>(null);
+  const [audioPlayer] = useState(new AudioPlayer());
+  const [scoreXml, setScoreXml] = useState<string | null>(null); // State để lưu trữ XML nhạc
 
-const MUSIC_XML_URL =
-  "https://raw.githubusercontent.com/Audiveris/audiveris/2d6796cbdcb263dcfde9ffaad9db861f6f37eb9e/test/cases/01-klavier/target.xml";
-
-const MusicDisplayAndPlayer: React.FC = () => {
-  const osmdContainerRef = useRef<HTMLDivElement | null>(null);
-   // Tham chiếu đến container hiển thị sheet music
-
-  const [osmd, setOsmd] = useState<OpenSheetMusicDisplay | null>(null); 
-  // Trạng thái để lưu OpenSheetMusicDisplay instance
-  
-  const [audioPlayer, setAudioPlayer] = useState<AudioPlayer | null>(null); 
-  // Trạng thái để lưu AudioPlayer instance
-
-  // Tải và hiển thị file MusicXML
-  const initializeSheetMusicDisplay = async () => {
-    debugger
-    try {
-      const musicXmlData = await fetchMusicXML(MUSIC_XML_URL); // Fetch dữ liệu MusicXML
-      if (osmdContainerRef.current) {
-        const osmdInstance = new OpenSheetMusicDisplay(osmdContainerRef.current); // Tạo OpenSheetMusicDisplay
-        await osmdInstance.load(musicXmlData); // Load dữ liệu MusicXML
-        osmdInstance.render(); // Hiển thị bản nhạc lên giao diện
-        setOsmd(osmdInstance); // Lưu instance của OSMD vào state
-
-        // Tạo AudioPlayer và kết nối nó với OSMD
-        const player = new AudioPlayer();
-        player.loadScore(osmdInstance); // Nạp dữ liệu của OSMD vào AudioPlayer
-        setAudioPlayer(player); // Lưu instance của AudioPlayer vào state
-      }
-    } catch (error) {
-      console.error("Lỗi khi tải hoặc hiển thị MusicXML:", error);
+  // Hàm khởi tạo sheet nhạc
+  const initializeSheetMusic = async (xmlData: string) => {
+    if (osmdInstance) {
+      osmdInstance.load(xmlData);
+      osmdInstance.render();
+      audioPlayer.playbackSettings.masterVolume = 0; // Thiết lập âm lượng
+      audioPlayer.loadScore(osmdInstance); // Tải score vào audio player
     }
   };
 
-  // Khi component được mount, tải và hiển thị bản nhạc
+  // Hàm lấy score mặc định từ URL
+  const fetchDefaultScore = async () => {
+    try {
+      const response = await axios.get(
+        "https://raw.githubusercontent.com/Audiveris/audiveris/2d6796cbdcb263dcfde9ffaad9db861f6f37eb9e/test/cases/01-klavier/target.xml"
+      );
+      return response.data; // Trả về dữ liệu XML
+    } catch (error) {
+      console.error("Error fetching score:", error);
+      return null;
+    }
+  };
+
+  // Hàm thiết lập OSMD
+  const setupOsmd = () => {
+    if (scoreContainerRef.current) {
+      const osmd = new OpenSheetMusicDisplay(scoreContainerRef.current);
+      setOsmdInstance(osmd);
+    }
+  };
+
   useEffect(() => {
-    initializeSheetMusicDisplay();
+    setupOsmd(); // Thiết lập OSMD khi component được mount
   }, []);
 
-  // Hàm phát nhạc
-  const handlePlayMusic = () => {
-    if (audioPlayer) {
-      audioPlayer.play(); // Phát nhạc từ AudioPlayer
+  useEffect(() => {
+    const loadDefaultScore = async () => {
+      const defaultScoreXml = await fetchDefaultScore();
+      if (defaultScoreXml) {
+        setScoreXml(defaultScoreXml); // Lưu trữ score mặc định
+      }
+    };
+    loadDefaultScore();
+  }, []);
+
+  // Theo dõi thay đổi của scoreXml và gọi lại hàm khởi tạo
+  useEffect(() => {
+    if (scoreXml) {
+      initializeSheetMusic(scoreXml);
+    }
+  }, [scoreXml]);
+
+  // Xử lý khi người dùng tải lên file XML
+  const handleFileLoad = (event: ProgressEvent<FileReader>) => {
+    const xmlData = event.target?.result as string;
+    if (xmlData) {
+      setScoreXml(xmlData); // Cập nhật scoreXml với file mới
     }
   };
 
-  // Hàm dừng phát nhạc
-  const handleStopMusic = () => {
-    if (audioPlayer) {
-      audioPlayer.stop(); // Dừng phát nhạc từ AudioPlayer
+  // Xử lý sự kiện tải file
+  const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = handleFileLoad;
+      reader.readAsText(file); // Đọc file XML
     }
+  };
+
+  // Xử lý thay đổi BPM
+  const handleBpmChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    audioPlayer.setBpm(Number(event.target.value)); // Cập nhật BPM
   };
 
   return (
     <div>
-      <h2>MusicXML Display and Player</h2>
-      <div
-        ref={osmdContainerRef}
-        style={{
-          border: "1px solid black",
-          marginBottom: "20px",
-          padding: "10px",
-        }}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileInputChange} // Gọi hàm xử lý khi tải file
       />
-
-      <button onClick={handlePlayMusic} disabled={!audioPlayer}>
-        Play Music
-      </button>
-
-      <button onClick={handleStopMusic} disabled={!audioPlayer}>
-        Stop Music
-      </button>
+      <input
+        type="number"
+        ref={bpmInputRef}
+        onChange={handleBpmChange} // Gọi hàm xử lý khi thay đổi BPM
+        placeholder="BPM"
+      />
+      <div id="score" ref={scoreContainerRef}></div>
+      <button id="btn-play" onClick={() => audioPlayer.play()}>Play</button>
+      <button id="btn-pause" onClick={() => audioPlayer.pause()}>Pause</button>
+      <button id="btn-stop" onClick={() => audioPlayer.stop()}>Stop</button>
     </div>
   );
 };
 
-export default MusicDisplayAndPlayer;
+export default MusicSheet;
