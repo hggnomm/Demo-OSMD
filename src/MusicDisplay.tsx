@@ -67,7 +67,8 @@ const MusicSheet: React.FC = () => {
   const handleFileLoad = (event: ProgressEvent<FileReader>) => {
     const xmlData = event.target?.result as string;
     if (xmlData) {
-      setScoreXml(xmlData); // Cập nhật scoreXml với file mới
+      audioPlayer.stop(); 
+      setScoreXml(xmlData);
     }
   };
 
@@ -99,10 +100,16 @@ const MusicSheet: React.FC = () => {
         onChange={handleBpmChange} // Gọi hàm xử lý khi thay đổi BPM
         placeholder="BPM"
       />
+      <button id="btn-play" onClick={() => audioPlayer.play()}>
+        Play
+      </button>
+      <button id="btn-pause" onClick={() => audioPlayer.pause()}>
+        Pause
+      </button>
+      <button id="btn-stop" onClick={() => audioPlayer.stop()}>
+        Stop
+      </button>
       <div id="score" ref={scoreContainerRef}></div>
-      <button id="btn-play" onClick={() => audioPlayer.play()}>Play</button>
-      <button id="btn-pause" onClick={() => audioPlayer.pause()}>Pause</button>
-      <button id="btn-stop" onClick={() => audioPlayer.stop()}>Stop</button>
     </div>
   );
 };
