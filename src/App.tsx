@@ -1,11 +1,11 @@
 import React from 'react';
-import MusicDisplay from './MusicDisplay';
+import MusicDisplayAndPlayer from './MusicDisplay';
 
 const App: React.FC = () => {
   return (
     <div>
-      <MusicDisplay />
-    </div>
+      <MusicDisplayAndPlayer />
+      </div>
   );
 };
 

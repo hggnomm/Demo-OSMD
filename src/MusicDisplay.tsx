@@ -1,90 +1,87 @@
 import React, { useEffect, useRef, useState } from "react";
 import { OpenSheetMusicDisplay } from "opensheetmusicdisplay";
-import AudioPlayer from "osmd-audio-player";
 import axios from "axios";
+import AudioPlayer from "osmd-audio-player"; // Import thư viện AudioPlayer
 
-const MusicDisplay: React.FC = () => {
-  const scoreRef = useRef<HTMLDivElement>(null);
-  const loadingRef = useRef<HTMLDivElement>(null);
-  const audioPlayerRef = useRef<AudioPlayer | null>(null);
+const fetchMusicXML = async (url: string): Promise<string> => {
+  const response = await axios.get(url);
+  return response.data;
+};
 
-  const fetchScoreXml = async () => {
-    const response = await axios.get(
-      "https://raw.githubusercontent.com/Audiveris/audiveris/2d6796cbdcb263dcfde9ffaad9db861f6f37eb9e/test/cases/01-klavier/target.xml"
-    );
-    return response.data;
-  };
-  const loadMusic = async (
-    osmd: OpenSheetMusicDisplay,
-    audioPlayer: AudioPlayer
-  ) => {
+const MUSIC_XML_URL =
+  "https://raw.githubusercontent.com/Audiveris/audiveris/2d6796cbdcb263dcfde9ffaad9db861f6f37eb9e/test/cases/01-klavier/target.xml";
+
+const MusicDisplayAndPlayer: React.FC = () => {
+  const osmdContainerRef = useRef<HTMLDivElement | null>(null);
+   // Tham chiếu đến container hiển thị sheet music
+
+  const [osmd, setOsmd] = useState<OpenSheetMusicDisplay | null>(null); 
+  // Trạng thái để lưu OpenSheetMusicDisplay instance
+  
+  const [audioPlayer, setAudioPlayer] = useState<AudioPlayer | null>(null); 
+  // Trạng thái để lưu AudioPlayer instance
+
+  // Tải và hiển thị file MusicXML
+  const initializeSheetMusicDisplay = async () => {
+    debugger
     try {
-      const scoreXml = await fetchScoreXml();
-      await osmd.load(scoreXml);
-      osmd.render();
-      audioPlayer.loadScore(osmd);
-      hideLoadingMessage();
-      registerButtonEvents(audioPlayer);
+      const musicXmlData = await fetchMusicXML(MUSIC_XML_URL); // Fetch dữ liệu MusicXML
+      if (osmdContainerRef.current) {
+        const osmdInstance = new OpenSheetMusicDisplay(osmdContainerRef.current); // Tạo OpenSheetMusicDisplay
+        await osmdInstance.load(musicXmlData); // Load dữ liệu MusicXML
+        osmdInstance.render(); // Hiển thị bản nhạc lên giao diện
+        setOsmd(osmdInstance); // Lưu instance của OSMD vào state
+
+        // Tạo AudioPlayer và kết nối nó với OSMD
+        const player = new AudioPlayer();
+        player.loadScore(osmdInstance); // Nạp dữ liệu của OSMD vào AudioPlayer
+        setAudioPlayer(player); // Lưu instance của AudioPlayer vào state
+      }
     } catch (error) {
-      console.error("Error loading music:", error);
+      console.error("Lỗi khi tải hoặc hiển thị MusicXML:", error);
     }
   };
 
+  // Khi component được mount, tải và hiển thị bản nhạc
   useEffect(() => {
-    console.log("Loading music..."); // Kiểm tra xem hàm này có được gọi nhiều lần không
-
-    const osmd = new OpenSheetMusicDisplay(scoreRef.current!);
-    const audioPlayer = new AudioPlayer();
-    audioPlayerRef.current = audioPlayer;
-
-    loadMusic(osmd, audioPlayer); // Gọi hàm tải nhạc
+    initializeSheetMusicDisplay();
   }, []);
 
-  const hideLoadingMessage = () => {
-    if (loadingRef.current) {
-      loadingRef.current.style.display = "none";
+  // Hàm phát nhạc
+  const handlePlayMusic = () => {
+    if (audioPlayer) {
+      audioPlayer.play(); // Phát nhạc từ AudioPlayer
     }
   };
 
-  const registerButtonEvents = (audioPlayer: AudioPlayer) => {
-    const handlePlay = () => {
-      if (audioPlayer.state === "STOPPED" || audioPlayer.state === "PAUSED") {
-        audioPlayer.play();
-      }
-    };
-
-    const handlePause = () => {
-      if (audioPlayer.state === "PLAYING") {
-        audioPlayer.pause();
-      }
-    };
-
-    const handleStop = () => {
-      if (audioPlayer.state === "PLAYING" || audioPlayer.state === "PAUSED") {
-        audioPlayer.stop();
-      }
-    };
-
-    document.getElementById("btn-play")?.addEventListener("click", handlePlay);
-    document
-      .getElementById("btn-pause")
-      ?.addEventListener("click", handlePause);
-    document.getElementById("btn-stop")?.addEventListener("click", handleStop);
+  // Hàm dừng phát nhạc
+  const handleStopMusic = () => {
+    if (audioPlayer) {
+      audioPlayer.stop(); // Dừng phát nhạc từ AudioPlayer
+    }
   };
 
   return (
-    <div className="container">
-      <div ref={loadingRef} id="loading">
-        Loading...
-      </div>
-      <div ref={scoreRef} id="score"></div>
-      <div className="button-container">
-        <button id="btn-play">Play</button>
-        <button id="btn-pause">Pause</button>
-        <button id="btn-stop">Stop</button>
-      </div>
+    <div>
+      <h2>MusicXML Display and Player</h2>
+      <div
+        ref={osmdContainerRef}
+        style={{
+          border: "1px solid black",
+          marginBottom: "20px",
+          padding: "10px",
+        }}
+      />
+
+      <button onClick={handlePlayMusic} disabled={!audioPlayer}>
+        Play Music
+      </button>
+
+      <button onClick={handleStopMusic} disabled={!audioPlayer}>
+        Stop Music
+      </button>
     </div>
   );
 };
 
-export default MusicDisplay;
+export default MusicDisplayAndPlayer;
