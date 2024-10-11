@@ -59,6 +59,10 @@ const MusicSheet: React.FC = () => {
   // Theo dõi thay đổi của scoreXml và gọi lại hàm khởi tạo
   useEffect(() => {
     if (scoreXml) {
+      // Clear the previous OSMD instance if it exists
+      if (osmdInstance) {
+        osmdInstance.clear(); // Clear the previous score display
+      }
       initializeSheetMusic(scoreXml);
     }
   }, [scoreXml]);
@@ -67,8 +71,8 @@ const MusicSheet: React.FC = () => {
   const handleFileLoad = (event: ProgressEvent<FileReader>) => {
     const xmlData = event.target?.result as string;
     if (xmlData) {
-      audioPlayer.stop(); 
-      setScoreXml(xmlData);
+      audioPlayer.stop(); // Stop the current audio playback
+      setScoreXml(xmlData); // Set the new score XML
     }
   };
 
@@ -87,6 +91,10 @@ const MusicSheet: React.FC = () => {
     audioPlayer.setBpm(Number(event.target.value)); // Cập nhật BPM
   };
 
+  const handlePlay = () => {
+    audioPlayer.play();
+  };
+
   return (
     <div>
       <input
@@ -100,7 +108,7 @@ const MusicSheet: React.FC = () => {
         onChange={handleBpmChange} // Gọi hàm xử lý khi thay đổi BPM
         placeholder="BPM"
       />
-      <button id="btn-play" onClick={() => audioPlayer.play()}>
+      <button id="btn-play" onClick={() => handlePlay()}>
         Play
       </button>
       <button id="btn-pause" onClick={() => audioPlayer.pause()}>
