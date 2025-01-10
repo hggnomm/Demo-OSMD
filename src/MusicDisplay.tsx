@@ -7,7 +7,8 @@ const MusicSheet: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const bpmInputRef = useRef<HTMLInputElement | null>(null);
   const scoreContainerRef = useRef<HTMLDivElement | null>(null);
-  const [osmdInstance, setOsmdInstance] = useState<OpenSheetMusicDisplay | null>(null);
+  const [osmdInstance, setOsmdInstance] =
+    useState<OpenSheetMusicDisplay | null>(null);
   const [audioPlayer] = useState(new AudioPlayer());
   const [scoreXml, setScoreXml] = useState<string | null>(null); // State để lưu trữ XML nhạc
 
@@ -77,7 +78,9 @@ const MusicSheet: React.FC = () => {
   };
 
   // Xử lý sự kiện tải file
-  const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -97,27 +100,32 @@ const MusicSheet: React.FC = () => {
 
   return (
     <div>
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileInputChange} // Gọi hàm xử lý khi tải file
-      />
-      <input
-        type="number"
-        ref={bpmInputRef}
-        onChange={handleBpmChange} // Gọi hàm xử lý khi thay đổi BPM
-        placeholder="BPM"
-      />
-      <button id="btn-play" onClick={() => handlePlay()}>
-        Play
-      </button>
-      <button id="btn-pause" onClick={() => audioPlayer.pause()}>
-        Pause
-      </button>
-      <button id="btn-stop" onClick={() => audioPlayer.stop()}>
-        Stop
-      </button>
-      <div id="score" ref={scoreContainerRef}></div>
+      <div className="container">
+        <input
+          type="file"
+          className="file-input"
+          ref={fileInputRef}
+          onChange={handleFileInputChange}
+        />
+        <input
+          type="number"
+          className="bpm-input"
+          ref={bpmInputRef}
+          onChange={handleBpmChange}
+          placeholder="BPM"
+        />
+        <button className="btn btn-play" onClick={() => handlePlay()}>
+          Play
+        </button>
+        <button className="btn btn-pause" onClick={() => audioPlayer.pause()}>
+          Pause
+        </button>
+        <button className="btn btn-stop" onClick={() => audioPlayer.stop()}>
+          Stop
+        </button>
+      </div>
+
+      <div className="score" ref={scoreContainerRef}></div>
     </div>
   );
 };

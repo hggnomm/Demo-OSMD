@@ -1,0 +1,80 @@
+/* Container của các phần tử */
+.container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 15px; /* Khoảng cách giữa các phần tử */
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* Styling cho input file */
+.file-input {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #f9f9f9;
+}
+
+/* Styling cho input số BPM */
+.bpm-input {
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  width: 100px; /* Kích thước cố định cho input BPM */
+  text-align: center;
+}
+
+/* Button chung */
+.btn {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #4caf50;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+/* Thay đổi màu nền khi hover */
+.btn:hover {
+  background-color: #45a049;
+}
+
+/* Các nút play, pause, stop */
+.btn-play {
+  background-color: #4caf50;
+}
+
+.btn-play:hover {
+  background-color: #45a049;
+}
+
+.btn-pause {
+  background-color: #f39c12;
+}
+
+.btn-pause:hover {
+  background-color: #e67e22;
+}
+
+.btn-stop {
+  background-color: #e74c3c;
+}
+
+.btn-stop:hover {
+  background-color: #c0392b;
+}
+
+/* Styling cho score */
+.score {
+  margin-top: 20px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
